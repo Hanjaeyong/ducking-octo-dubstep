@@ -1,0 +1,285 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>		//header file
+
+#define WIDTH 512
+#define HEIGHT 512		//image size
+
+typedef unsigned char BYTE;
+
+unsigned char** MemAlloc_2D(int width, int height);		//2D memory allocation
+void MemFree_2D(unsigned char** arr, int height);		//2D memory Free
+
+void FileRead(char* filename, unsigned char** img_in, int width, int height);		//read data from a file
+void FileWrite(char* filename, unsigned char** img_out, int width, int height);		//write data to a file
+
+void MedianMeanFilter(unsigned char** img_in, unsigned char** img_out, int mask_size, int width, int height);		//median mean filter
+
+void ArithmeticMeanFilter(unsigned char** img_in, unsigned char** img_out, int mask_size, int width, int height);
+
+float GetPSNR(unsigned char** img_ori, unsigned char** img_dist, int width, int height);		//PSNR calculation
+
+int main()
+{
+	BYTE **img_ori, **img_in_Gaus, **img_in_SP, **img_res;
+
+	img_ori = MemAlloc_2D(WIDTH, HEIGHT);
+	img_in_Gaus = MemAlloc_2D(WIDTH, HEIGHT);
+	img_in_SP = MemAlloc_2D(WIDTH, HEIGHT);
+	FileRead("Lena(512x512).raw", img_ori, WIDTH, HEIGHT);
+	FileRead("[Gaussian_Noise]Lena(512x512).raw", img_in_Gaus, WIDTH, HEIGHT);
+	FileRead("[Salt&Pepper_Noise]Lena(512x512).raw", img_in_SP, WIDTH, HEIGHT);
+
+	img_res = MemAlloc_2D(WIDTH, HEIGHT);
+
+	////////////// arithemtc mean filtering(3x3, 5x5, 7x7, 9x9) on Gaussian noise///////
+	printf("Gaussian noise PSNR : %.2f dB\n\n", GetPSNR(img_ori,img_in_Gaus, WIDTH, HEIGHT));
+
+	ArithmeticMeanFilter(img_in_Gaus, img_res, 3, WIDTH, HEIGHT); 
+	FileWrite("AMF_3x3_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("3x3 arithmetic mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	ArithmeticMeanFilter(img_in_Gaus, img_res, 5, WIDTH, HEIGHT); 
+	FileWrite("AMF_5x5_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("5x5 arithmetic mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+	
+	ArithmeticMeanFilter(img_in_Gaus, img_res, 7, WIDTH, HEIGHT); 
+	FileWrite("AMF_7x7_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("7x7 arithmetic mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	ArithmeticMeanFilter(img_in_Gaus, img_res, 9, WIDTH, HEIGHT); 
+	FileWrite("AMF_9x9_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("9x9 arithmetic mean filter PSNR : %.2f dB\n\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	////////// median mean filtering (3x3, 5x5, 7x7, 9x9) on Gaussian noise ///////////
+	MedianMeanFilter(img_in_Gaus, img_res, 3, WIDTH, HEIGHT);
+	FileWrite("[MM_3x3_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("3x3 median mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	MedianMeanFilter(img_in_Gaus, img_res, 5, WIDTH, HEIGHT);
+	FileWrite("[MM_5x5_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("5x5 median mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	MedianMeanFilter(img_in_Gaus, img_res, 7, WIDTH, HEIGHT);
+	FileWrite("[MM_7x7_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("7x7 median mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	
+	MedianMeanFilter(img_in_Gaus, img_res, 9, WIDTH, HEIGHT);
+	FileWrite("[MM_9x9_GN]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("9x9 median mean filter PSNR : %.2f dB\n\n\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	///////////// arithmetic mean filtering(3x3, 5x5, 7x7, 9x9) on salt&pepper noise //////
+
+	printf("Salt*pepper noise PSNR : %.2f dB\n\n", GetPSNR(img_ori, img_in_SP, WIDTH, HEIGHT));
+
+	ArithmeticMeanFilter(img_in_SP, img_res, 3, WIDTH, HEIGHT);
+	FileWrite("[AMF_3x3_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("3x3 arithmetic mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	ArithmeticMeanFilter(img_in_SP, img_res, 5, WIDTH, HEIGHT);
+	FileWrite("[AMF_5x5_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("5x5 arithmetic mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	ArithmeticMeanFilter(img_in_SP, img_res, 7, WIDTH, HEIGHT);
+	FileWrite("[AMF_7x7_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("7x7 arithmetic mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	ArithmeticMeanFilter(img_in_SP, img_res, 9, WIDTH, HEIGHT);
+	FileWrite("[AMF_9x9_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("9x9 arithmetic mean filter PSNR : %.2f dB\n\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	///////// median mean filtering(3x3, 5x5, 7x7, 9x9) on salt&pepper noise/////////
+	MedianMeanFilter(img_in_SP, img_res, 3, WIDTH, HEIGHT);
+	FileWrite("[MM_3x3_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("3x3 median mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	MedianMeanFilter(img_in_SP, img_res, 5, WIDTH, HEIGHT);
+	FileWrite("[MM_5x5_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("5x5 median mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	MedianMeanFilter(img_in_SP, img_res, 7, WIDTH, HEIGHT);
+	FileWrite("[MM_7x7_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("7x7 median mean filter PSNR : %.2f dB\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+	MedianMeanFilter(img_in_SP, img_res, 9, WIDTH, HEIGHT);
+	FileWrite("[MM_9x9_SP]Lena(512x512).raw", img_res, WIDTH, HEIGHT);
+	printf("9x9 median mean filter PSNR : %.2f dB\n\n\n", GetPSNR(img_ori, img_res, WIDTH, HEIGHT));
+
+
+	MemFree_2D(img_ori, HEIGHT);
+	MemFree_2D(img_in_Gaus, HEIGHT);
+	MemFree_2D(img_in_SP, HEIGHT);
+	MemFree_2D(img_res, HEIGHT);
+
+	return 0;
+}
+
+unsigned char** MemAlloc_2D(int width, int height)
+{
+	unsigned char** arr;
+	int i;
+
+	arr = (unsigned char**)malloc(sizeof(unsigned char*) * height);
+	for(i=0; i<height; i++)
+		arr[i] = (unsigned char*)malloc(sizeof(unsigned char*) * width);
+
+	return arr;
+}
+
+void MemFree_2D(unsigned char** arr, int height)		//2D memory free
+{
+	int i;
+	for(i=0; i<height; i++){
+		free(arr[i]);
+	}
+	free(arr);
+}
+
+void FileRead(char* filename, unsigned char** img_in, int width, int height)		//read data from a file
+{
+	FILE* fp_in;
+	int i;
+
+	fp_in = fopen(filename, "rb");
+	for(i = 0 ; i < height ; i++)
+		fread(img_in[i], sizeof(unsigned char), width, fp_in);
+	fclose(fp_in);
+}
+
+void FileWrite(char* filename, unsigned char** img_out, int width, int height)		//write data to a file
+{
+	FILE* fp_out;
+	int i;
+
+	fp_out = fopen(filename, "wb");
+	for(i = 0 ; i < height ; i++)
+		fwrite(img_out[i], sizeof(unsigned char), width, fp_out);
+	fclose(fp_out);
+}
+
+
+void ArithmeticMeanFilter(unsigned char** img_in, unsigned char** img_out, int mask_size, int width, int height)
+{
+	int padding = mask_size/2;
+	float temp ;
+	int h, w, i, j;
+	
+	BYTE** img_in_padding = MemAlloc_2D(width + 2*padding, height + 2*padding);
+	
+	for(i = 0 ; i < height ; i++){
+		for(j = 0 ; j < width ; j++){
+			img_in_padding[i+padding][j+padding] = img_in[i][j];
+
+		}
+	}
+	for(i = 0 ; i< height ; i++){
+		for(j = 0 ; j< padding ; j++){
+			img_in_padding[i+padding][j] = img_in[i][0];
+			img_in_padding[i+padding][j+width+padding] = img_in[i][width-1];
+		}
+	}
+	for(j = 0 ; j<width ; j++){
+		for(i = 0 ; i<padding ; i++){
+			img_in_padding[i][j+padding] = img_in[0][j];
+			img_in_padding[i+height+padding][j+padding] = img_in[height-1][j];
+		}
+	}
+	for(i = 0 ; i<padding ; i++){
+		for(j = 0 ; j < padding ; j++){
+			img_in_padding[i][j] = img_in[0][0];
+			img_in_padding[i+height+padding][j] = img_in[height-1][0];
+			img_in_padding[i][j+width+padding] = img_in[0][width-1];
+			img_in_padding[i+height+padding][j+width+padding] = img_in[height-1][width-1];
+		}
+	}
+
+	for(i = 0 ; i < height ; i++){
+		for(j = 0 ; j < width ; j++){
+			for(h = 0 ; h < mask_size ; h++){
+				for(w = 0 ; w < mask_size ; w++){
+					temp = 0 ;
+					temp += img_in_padding[i+h][j+w];
+					img_out[i][j] = (BYTE)(temp/(mask_size*mask_size));
+				}
+			}
+		}
+	}
+	MemFree_2D(img_in_padding, height + 2*padding);
+}
+
+void MedianMeanFilter(BYTE** img_in, BYTE** img_out, int mask_size, int width, int height)
+{
+	int padding = mask_size/2;
+	int idx;
+	int h, w, i, j, n;
+	
+	float temp;
+	BYTE** img_in_padding;
+
+	float* data = (float*)malloc(sizeof(float)*mask_size*mask_size);
+
+	img_in_padding = MemAlloc_2D(width + 2*padding, height + 2*padding);
+
+	for(i = 0 ; i <height ; i++){
+		for(j = 0 ; j < width ; j++){
+			img_in_padding[i+padding][j+padding] = img_in[i][j];
+		}
+	}
+	for(i = 0 ; i< height ; i++){
+		for(j = 0 ; j< padding ; j++){
+			img_in_padding[i+padding][j] = img_in[i][0];
+			img_in_padding[i+padding][j+width+padding-1] = img_in[i][width-1];
+		}
+	}
+	for(j = 0 ; j<width ; j++){
+		for(i = 0 ; i<padding ; i++){
+			img_in_padding[i][j+padding] = img_in[0][j];
+			img_in_padding[i+height+padding][j+padding] = img_in[height-1][j];
+		}
+	}
+	for(i = 0 ; i<padding ; i++){
+		for(j = 0 ; j < padding ; j++){
+			img_in_padding[i][j] = img_in[0][0];
+			img_in_padding[i+height+padding][j] = img_in[height-1][0];
+			img_in_padding[i][j+width+padding] = img_in[0][width-1];
+			img_in_padding[i+height+padding][j+width+padding] = img_in[height-1][width-1];
+		}
+	}
+
+	for(i = 0 ; i < height ; i++){
+		for(j = 0 ; j < width ; j++){
+			for(h = 0 ; h<mask_size ; h++){
+				for(w = 0 ; w<mask_size ; w++){
+					for(n = 0 ; n < mask_size*mask_size ; n++){
+						temp = 0;
+						temp = img_in_padding[i+h][j+w];
+						data[n] = temp;
+						if(data[n]<data[n-1]){
+							temp = data[n-1];
+							data[n-1] = data[n];
+							data[n] = temp;
+						}
+						idx = 0 ;
+						idx = (mask_size*mask_size)/2;
+						temp = data[idx];
+						img_out[i][j] = (BYTE)temp;
+					}
+				}
+			}
+		}
+	}
+}
+								
+float GetPSNR(unsigned char** img_ori, unsigned char** img_dist, int width, int height)		//PSNR value
+{
+	float mse = 0;
+	int i, j;
+
+	for(i = 0 ; i < height ; i++){
+		for(j = 0 ; j < width ; j++){
+			mse += (img_ori[i][j] - img_dist[i][j]) * (img_ori[i][j] - img_dist[i][j]) / (float)(width*height);
+		}
+	}
+	return 10*(float)log10((255*255)/mse);
+}
